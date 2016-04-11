@@ -1,0 +1,17 @@
+- name: remove cloudformation stack
+  hosts: localhost
+  connection: local
+
+  tasks:
+  - name: remove two server stack
+    cloudformation:
+      stack_name: "{{ deployment_name }}"
+      aws_access_key: "{{ aws_access_key }}"
+      aws_secret_key: "{{ aws_secret_key }}"
+      region: "{{ aws_region }}"
+      state: absent
+      template: "cloudformation/two_server_stack.json"
+      template_parameters:
+        BaseImageParam: "{{ base_ami_id }}"
+        KeyNameParam: "{{ deployment_pem_key }}"
+        DeploymentNameParam: "{{ deployment_name }}"

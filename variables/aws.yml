@@ -1,0 +1,11 @@
+aws_access_key: ""
+aws_secret_key: ""
+aws_region: us-east-1
+base_ami_id: "ami-fce3c696"
+deployment_pem_key: ansible
+deployment_name: ansible-nuxeo
+deployment_webserver_tag: "tag_Name_{{ deployment_name }}-Webserver"
+deployment_database_tag: "tag_Name_{{ deployment_name }}-Database"
+nuxeo_database_host: "{{ lookup('cloudformation', [deployment_name, 'PsqlHostName' ] | join('/') ) }}"
+nuxeo_webserver_ip: "{{ lookup('cloudformation', [deployment_name, 'NuxeoHostIp' ] | join('/') ) }}"
+nuxeo_webserver_hostname: "{{ lookup('cloudformation', [deployment_name, 'NuxeoHostName' ] | join('/') ) }}"

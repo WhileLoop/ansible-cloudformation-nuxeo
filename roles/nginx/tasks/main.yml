@@ -1,0 +1,39 @@
+- name: install nginx
+  apt:
+    name: nginx
+    update_cache: yes
+    cache_valid_time: 3600
+  notify: nginx_changed
+
+- name: load the nginx config file
+  template:
+    src: etc/nginx/nginx.conf
+    dest: /etc/nginx/nginx.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify: nginx_changed
+
+- name: load the virtual host configuration files
+  template:
+    src: "etc/nginx/sites-available/{{ item }}"
+    dest: "/etc/nginx/sites-available/{{ item }}"
+    owner: root
+    group: root
+    mode: 0644
+  with_items: nginx_virtualhosts
+  notify: nginx_changed
+
+- name: use symlink to activate the virtual hosts site.
+  file:
+    src: "/etc/nginx/sites-available/{{ item }}"
+    dest: "/etc/nginx/sites-enabled/{{ item }}"
+    state: link
+  with_items: nginx_virtualhosts
+  notify: nginx_changed
+
+- name: disable default site by removing symlink.
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+  notify: nginx_changed

@@ -1,0 +1,42 @@
+- name: set nuxeo debconf selections
+  debconf:
+    name: nuxeo
+    question: "{{ item.question }}"
+    value: "{{ item.value }}"
+    vtype: "{{ item.type }}"
+  with_items:
+    - question: 'nuxeo/http-port'
+      value: 8080
+      type: string
+    - question: 'nuxeo/bind-address'
+      value: 0.0.0.0
+      type: string
+    - question: 'nuxeo/database'
+      value: 'Configure database in wizard'
+      type: select
+
+- name: add nuxeo apt repo key
+  apt_key:
+    url: 'http://apt.nuxeo.org/nuxeo.key'
+
+- name: add nuxeo apt repo
+  apt_repository:
+    repo: 'deb http://apt.nuxeo.org/ trusty releases'
+    state: present
+    update_cache: yes
+
+- name: install nuxeo
+  apt:
+    name: nuxeo=6.0-01
+    update_cache: yes
+    install_recommends: no
+    cache_valid_time: 3600
+
+- name: load nuxeo config file
+  template:
+    src: etc/nuxeo/nuxeo.conf
+    dest: /etc/nuxeo/nuxeo.conf
+    owner: nuxeo
+    group: nuxeo
+    mode: 0644
+  notify: nuxeo_changed

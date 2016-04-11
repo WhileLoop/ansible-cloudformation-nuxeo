@@ -1,0 +1,20 @@
+- name: create cloudformation stack
+  hosts: localhost
+  connection: local
+
+  tasks:
+  - name: provision two server stack
+    cloudformation:
+      stack_name: "{{ deployment_name }}"
+      aws_access_key: "{{ aws_access_key }}"
+      aws_secret_key: "{{ aws_secret_key }}"
+      state: present
+      region: "{{ aws_region }}"
+      disable_rollback: no
+      template: "cloudformation/two_server_stack.json"
+      template_parameters:
+        BaseImageParam: "{{ base_ami_id }}"
+        KeyNameParam: "{{ deployment_pem_key }}"
+        DeploymentNameParam: "{{ deployment_name }}"
+      tags:
+        Deployment: "{{ deployment_name }}"

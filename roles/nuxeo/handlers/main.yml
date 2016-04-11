@@ -1,0 +1,4 @@
+- name: nuxeo_changed
+  service:
+    name: nuxeo
+    state: restarted

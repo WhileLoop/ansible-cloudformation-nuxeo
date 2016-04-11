@@ -1,0 +1,45 @@
+- name: install postgres
+  apt:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+  with_items:
+    - postgresql-9.3
+    - python-psycopg2
+  notify: psql_changed
+
+- name: configure postgres security
+  template:
+    src: pg_hba.conf
+    dest: /etc/postgresql/9.3/main/
+    owner: postgres
+    group: postgres
+    mode: 0640
+  notify: psql_changed
+
+- name: configure postgres general
+  template:
+    src: postgresql.conf
+    dest: /etc/postgresql/9.3/main/
+    owner: postgres
+    group: postgres
+    mode: 0644
+  notify: psql_changed
+
+- name: make sure postgres is running
+  service:
+    name: postgresql
+    state: started
+
+- name: create nuxeo db user
+  postgresql_user:
+    name: nuxeo
+    password: nuxeo
+  sudo_user: postgres
+
+- name: create nuxeo database
+  postgresql_db:
+    name: nuxeo
+    owner: nuxeo
+  sudo_user: postgres

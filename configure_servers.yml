@@ -1,0 +1,24 @@
+# Need to configure database first so Nuxeo doesn't fail on startup.
+- name: configure postgresql
+  hosts: "{{ deployment_database_tag }}"
+  sudo: yes
+  remote_user: ubuntu
+
+  roles:
+   - role: psql
+
+- name: configure nuxeo
+  hosts: "{{ deployment_webserver_tag }}"
+  sudo: yes
+  gather_facts: no
+  remote_user: ubuntu
+
+  roles:
+    - role: nginx
+      nginx_virtualhosts:
+        - nuxeo
+    - role: nuxeo
+
+  post_tasks:
+    - debug:
+        var: nuxeo_webserver_hostname

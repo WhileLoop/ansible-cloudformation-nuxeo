@@ -1,0 +1,109 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Ansible managed dynamic Nuxeo deployment with separate database host.",
+
+  "Parameters": {
+
+    "KeyNameParam": {
+      "Type": "AWS::EC2::KeyPair::KeyName",
+      "Description" : "The SSH key to use for the two instances."
+    },
+
+    "BaseImageParam": {
+      "Type": "AWS::EC2::Image::Id",
+      "Description" : "The base AMI to use. Ubuntu 14.04 recommended."
+    },
+
+    "DeploymentNameParam": {
+      "Type": "String",
+      "Description" : "The name of the deployment. Used to tag and query all resources."
+    }
+
+  },
+
+  "Outputs": {
+
+    "NuxeoHostName": {
+      "Value": { "Fn::GetAtt": [ "NuxeoInstance", "PublicDnsName" ] }
+    },
+
+    "NuxeoHostIp": {
+      "Value": { "Fn::GetAtt": [ "NuxeoInstance", "PrivateIp" ] }
+    },
+
+    "PsqlHostName": {
+      "Value": { "Fn::GetAtt": [ "DatabaseInstance", "PublicDnsName" ] }
+    }
+
+  },
+
+  "Resources": {
+
+    "NuxeoSecurityGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "GroupDescription": "Allow communication between webserver and database, and webserver and public web",
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": [ "-", [ { "Ref": "DeploymentNameParam" }, "SG" ] ] }
+          }
+        ],
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "80",
+            "ToPort": "80",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "22",
+            "ToPort": "22",
+            "CidrIp": "0.0.0.0/0"
+          },
+          {
+            "IpProtocol": "tcp",
+            "FromPort": "5432",
+            "ToPort": "5432",
+            "CidrIp": "0.0.0.0/0"
+          }
+        ]
+      }
+    },
+
+    "NuxeoInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "m3.medium",
+        "ImageId": { "Ref": "BaseImageParam" },
+        "KeyName": { "Ref": "KeyNameParam" },
+        "SecurityGroups": [ { "Ref": "NuxeoSecurityGroup" } ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": [ "-", [ { "Ref": "DeploymentNameParam" }, "Webserver" ] ] }
+          }
+        ]
+      }
+    },
+
+    "DatabaseInstance": {
+      "Type": "AWS::EC2::Instance",
+      "Properties": {
+        "InstanceType": "m3.medium",
+        "ImageId": { "Ref": "BaseImageParam" },
+        "KeyName": { "Ref": "KeyNameParam" },
+        "SecurityGroups": [ { "Ref": "NuxeoSecurityGroup" } ],
+        "Tags": [
+          {
+            "Key": "Name",
+            "Value": { "Fn::Join": [ "-", [ { "Ref": "DeploymentNameParam" }, "Database" ] ] }
+          }
+        ]
+      }
+    }
+
+  }
+
+}
